@@ -123,11 +123,22 @@ function BuildAPI(opts) {
           return callback(err);
         }
         try {
-          return callback(null, JSON.parse(body));
+          var returnData = JSON.parse(body);
         } catch (e) {
           debug('Failed to parse JSON response body');
           return callback(e);
         }
+
+        if (apiOp.method !== 'GET') {
+          if (returnData.status === 'OK') {
+            return callback(null, returnData.request_id, returnData.msg); 
+          } else {
+            return callback(new Error(returnData.msg));
+          }
+        } else {
+          return callback(returnData);
+        }
+        
       });
     }.bind(this);
   }, this);
