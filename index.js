@@ -21,14 +21,14 @@ var apiOps = [
   {name: 'triggerBuildername', path: [':branch_id', 'builders', ':builder_name', ':revision'], method: 'POST'},
 
   // Required: request_id, Optional: priority (int), count(int, default 1)
-  {name: 'rebuildRequest', path: [':branch_id', 'request'], method: 'POST', require: ['request_id']}
+  {name: 'rebuildRequest', path: [':branch_id', 'request'], method: 'POST', require: ['request_id']},
 
   {name: 'cancelRequest', path: [':branch_id', 'request', ':request_id'], method: 'DELETE'},
   {name: 'getRequest', path: [':branch_id'], method: 'GET'},
 
 
   // Required: priority (int)
-  {name: 'reprioritizeRequest', path: [':branch_id', 'request', ':request_id'], method: 'PUT', required: ['priority']}
+  {name: 'reprioritizeRequest', path: [':branch_id', 'request', ':request_id'], method: 'PUT', required: ['priority']},
 
   {name: 'cancelRev', path: [':branch_id', 'rev', ':revision'], method: 'DELETE'},
   {name: 'getRev', path: [':branch_id', 'rev', ':revision'], method: 'GET'},
@@ -158,4 +158,8 @@ function BuildAPI(opts) {
   }, this);
 }
 
-module.exports = BuildAPI;
+function makeApiObj(opts) {
+  return new BuildAPI(opts);
+}
+
+module.exports = makeApiObj;
