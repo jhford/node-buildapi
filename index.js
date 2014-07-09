@@ -11,6 +11,17 @@ var apiOps = [
 
   // Basic methods with params
   {name: 'getBranch', path: [':branch_id'], method: 'GET'},
+  {name: 'getBuildInfo', path: [':branch_id', 'build', ':build_id'], method: 'GET'},
+  {name: 'getBuilders', path: [':branch_id', 'builders'], method: 'GET'},
+  {name: 'getRequestInfo', path: [':branch_id'], method: 'GET'},
+  {name: 'getRevInfo', path: [':branch_id', 'rev', ':revision'], method: 'GET'},
+  {name: 'isDone', path: [':branch_id', 'rev', ':revision', 'is_done'], method: 'GET'},
+  {name: 'getBuildsForUser', path: [':branch_id', 'user', ':user'], method: 'GET'},
+  {name: 'cancelBuild', path: [':branch_id', 'build', ':build_id'], method: 'DELETE'},
+  {name: 'cancelRequest', path: [':branch_id', 'request', ':request_id'], method: 'DELETE'},
+  {name: 'cancelRevision', path: [':branch_id', 'rev', ':revision'], method: 'DELETE'},
+
+
 ]
 
 function BuildAPI(opts) {
