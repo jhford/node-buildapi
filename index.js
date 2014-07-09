@@ -11,7 +11,7 @@ var apiOps = [
   {name: 'getBranch', path: [':branch_id'], method: 'GET'},
 
   // Required: build_id, Optional: priority(int), count(int)
-  // UNIMP: POST	/self-serve/{branch}/build Requires: build_id, Optional: priority(int), count(int)
+  {name: 'rebuildBuildId', path: [':branch_id', 'build'], method: 'POST', required: ['build_id']},
 
   {name: 'cancelBuild', path: [':branch_id', 'build', ':build_id'], method: 'DELETE'},
   {name: 'getBuild', path: [':branch_id', 'build', ':build_id'], method: 'GET'},
@@ -21,14 +21,14 @@ var apiOps = [
   {name: 'triggerBuildername', path: [':branch_id', 'builders', ':builder_name', ':revision'], method: 'POST'},
 
   // Required: request_id, Optional: priority (int), count(int, default 1)
-  // UNIMP: POST	/self-serve/{branch}/request
+  {name: 'rebuildRequest', path: [':branch_id', 'request'], method: 'POST', require: ['request_id']}
 
   {name: 'cancelRequest', path: [':branch_id', 'request', ':request_id'], method: 'DELETE'},
   {name: 'getRequest', path: [':branch_id'], method: 'GET'},
 
 
-  // Required: priority (int), Optional count(int, default 1)
-  // UNIMP: PUT	/self-serve/{branch}/request/{request_id}
+  // Required: priority (int)
+  {name: 'reprioritizeRequest', path: [':branch_id', 'request', ':request_id'], method: 'PUT', required: ['priority']}
 
   {name: 'cancelRev', path: [':branch_id', 'rev', ':revision'], method: 'DELETE'},
   {name: 'getRev', path: [':branch_id', 'rev', ':revision'], method: 'GET'},
@@ -60,7 +60,7 @@ function BuildAPI(opts) {
   debug('Base URI is %s', this.baseUri);
 
   apiOps.forEach(function(apiOp) {
-    debug('Creating %s method for %s', apiOp.method, apiOp.name);
+    debug('Creating function %s method for %sing to %s', apiOp.name, apiOp.method, apiOp.path.join('/'));
 
     // Define each API method
     this[apiOp.name] = function() {
@@ -92,7 +92,22 @@ function BuildAPI(opts) {
       // Verify that we got the right number of function params
       // for the given endpoint
       if (paramIdx !== params.length) {
-        return callback(new Error('Incorrent number of arguments'));
+        return callback(new Error('Incorrect number of arguments'));
+      }
+
+      var hasRequired = true;
+      // Ensure that all required body params are present
+      if (apiOp.required) {
+        console.log('ohai');
+        apiOp.required.forEach(function (e) {
+          if (!bodyParams[e]) {
+            hasRequired = false;
+          }
+        });
+      }
+
+      if (!hasRequired) {
+        return callback(new Error('Missing required body parameter'));
       }
 
       // Splice in API endpoint
@@ -114,8 +129,7 @@ function BuildAPI(opts) {
         },
         form: bodyParams
       };
-      debug('Requesting URI: %s', reqOpts.uri);
-      debug('Auth with %s:%s', reqOpts.auth.user, reqOpts.auth.pass);
+      debug('%sing %s', apiOp.method, reqOpts.uri);
 
       // Perform request
       reqlib(reqOpts, function (err, response, body) {
