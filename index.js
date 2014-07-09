@@ -31,8 +31,19 @@ function writeDocs() {
   var fs = require('fs');
   var util = require('util');
   var lines = [];
+  lines.push('# Install');
+  lines.push('');
+  lines.push('    npm install buildapi');
+  lines.push('# Example');
+  lines.push("    var buildapi = require('./index')({username: 'me', password: 'supersecret'});");
+  lines.push("    buildapi.rebuildBuildId('gaia-try', {'build_id': '45705150'}, function(e, d) {");
+  lines.push("      if (e) {");
+  lines.push("        console.log(e);");
+  lines.push("      }");
+  lines.push("      console.log(d);");
+  lines.push("    }");
   lines.push('# API Reference');
-  lines.push('For complete information see [the real docs](https://secure.pub.build.mozilla.org/buildapi/self-serve)');
+  lines.push('For complete information see [the full docs](https://secure.pub.build.mozilla.org/buildapi/self-serve)');
   lines.push('');
   lines.push('All functions can take an options argument, some functions have required options and all require a callback.');
   lines.push('Call backs are in the form `function(err, data)`');
@@ -70,7 +81,8 @@ function writeDocs() {
 
   });
   lines.push('');
-  fs.writeFileSync('API.md', lines.join('\n'));
+  lines.push('Docs build with node -e "require(\'./index\').docs()"');
+  fs.writeFileSync('README.md', lines.join('\n'));
 }
 
 function BuildAPI(opts) {
