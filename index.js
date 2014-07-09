@@ -33,9 +33,9 @@ function writeDocs() {
   var lines = [];
   lines.push('# Install');
   lines.push('');
-  lines.push('    npm install buildapi');
+  lines.push('    npm install node-buildapi');
   lines.push('# Example');
-  lines.push("    var buildapi = require('./index')({username: 'me', password: 'supersecret'});");
+  lines.push("    var buildapi = require('node-buildapi')({username: 'me', password: 'supersecret'});");
   lines.push("    buildapi.rebuildBuildId('gaia-try', {'build_id': '45705150'}, function(e, d) {");
   lines.push("      if (e) {");
   lines.push("        console.log(e);");
@@ -126,7 +126,7 @@ function BuildAPI(opts) {
       // Insert js arguments into path list
       apiOp.path.forEach(function(e, idx, arr) {
         if (e.charAt(0) === ':') {
-          pathChunks.push(args[paramIdx++]);
+          pathChunks.push(encodeURIComponent(args[paramIdx++]));
         } else {
           pathChunks.push(e)
         }

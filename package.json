@@ -1,6 +1,6 @@
 {
   "name": "node-buildapi",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Node module for talking to the Mozilla Build API",
   "main": "index.js",
   "scripts": {
