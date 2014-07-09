@@ -5,23 +5,41 @@ var reqlib = require('request');
 var debug = require('debug')('node-buildapi:index');
 
 var apiOps = [
-  // Basic methods
-  {name: 'branches', path: ['branches'], method: 'GET'},
-  {name: 'jobs', path: ['jobs'], method: 'GET'},
-
-  // Basic methods with params
+  {name: 'listBranches', path: ['branches'], method: 'GET'},
+  {name: 'listJobs', path: ['jobs'], method: 'GET'},
+  {name: 'getJob', path: ['jobs', ':job_id'], method: 'get'},
   {name: 'getBranch', path: [':branch_id'], method: 'GET'},
-  {name: 'getBuildInfo', path: [':branch_id', 'build', ':build_id'], method: 'GET'},
-  {name: 'getBuilders', path: [':branch_id', 'builders'], method: 'GET'},
-  {name: 'getRequestInfo', path: [':branch_id'], method: 'GET'},
-  {name: 'getRevInfo', path: [':branch_id', 'rev', ':revision'], method: 'GET'},
-  {name: 'isDone', path: [':branch_id', 'rev', ':revision', 'is_done'], method: 'GET'},
-  {name: 'getBuildsForUser', path: [':branch_id', 'user', ':user'], method: 'GET'},
+
+  // Required: build_id, Optional: priority(int), count(int)
+  // UNIMP: POST	/self-serve/{branch}/build Requires: build_id, Optional: priority(int), count(int)
+
   {name: 'cancelBuild', path: [':branch_id', 'build', ':build_id'], method: 'DELETE'},
+  {name: 'getBuild', path: [':branch_id', 'build', ':build_id'], method: 'GET'},
+  {name: 'getBuilders', path: [':branch_id', 'builders'], method: 'GET'},
+
+  // Optional: properties(dict), files(list)
+  {name: 'triggerBuildername', path: [':branch_id', 'builders', ':builder_name', ':revision'], method: 'POST'},
+
+  // Required: request_id, Optional: priority (int), count(int, default 1)
+  // UNIMP: POST	/self-serve/{branch}/request
+
   {name: 'cancelRequest', path: [':branch_id', 'request', ':request_id'], method: 'DELETE'},
-  {name: 'cancelRevision', path: [':branch_id', 'rev', ':revision'], method: 'DELETE'},
+  {name: 'getRequest', path: [':branch_id'], method: 'GET'},
 
 
+  // Required: priority (int), Optional count(int, default 1)
+  // UNIMP: PUT	/self-serve/{branch}/request/{request_id}
+
+  {name: 'cancelRev', path: [':branch_id', 'rev', ':revision'], method: 'DELETE'},
+  {name: 'getRev', path: [':branch_id', 'rev', ':revision'], method: 'GET'},
+  {name: 'triggerRev', path: [':branch_id', 'rev', ':revision'], method: 'POST'},
+  {name: 'isDone', path: [':branch_id', 'rev', ':revision', 'is_done'], method: 'GET'},
+ 
+  // Nightly & PGO Optional: priority (int)
+  {name: 'triggerRevNightly', path: [':branch_id', 'rev', ':revision', 'nightly'], method: 'POST'},
+  {name: 'triggerRevPgo', path: [':branch_id', 'rev', ':revision', 'pgo'], method: 'POST'},
+
+  {name: 'getBuildsForUser', path: [':branch_id', 'user', ':user'], method: 'GET'},
 ]
 
 function BuildAPI(opts) {
@@ -48,6 +66,7 @@ function BuildAPI(opts) {
     this[apiOp.name] = function() {
       var args = Array.prototype.slice.call(arguments);
       var callback = args[args.length - 1];
+      if
       var params = args.slice(0, args.length - 1);
       var pathChunks = [];
       var paramIdx = 0;
