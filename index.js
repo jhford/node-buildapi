@@ -7,40 +7,71 @@ var debug = require('debug')('node-buildapi:index');
 var apiOps = [
   {name: 'listBranches', path: ['branches'], method: 'GET'},
   {name: 'listJobs', path: ['jobs'], method: 'GET'},
-  {name: 'getJob', path: ['jobs', ':job_id'], method: 'get'},
+  {name: 'getJob', path: ['jobs', ':job_id'], method: 'GET'},
   {name: 'getBranch', path: [':branch_id'], method: 'GET'},
-
-  // Required: build_id, Optional: priority(int), count(int)
-  {name: 'rebuildBuildId', path: [':branch_id', 'build'], method: 'POST', required: ['build_id']},
-
+  {name: 'rebuildBuildId', path: [':branch_id', 'build'], method: 'POST', required: ['build_id'], optional: ['priority', 'count']},
   {name: 'cancelBuild', path: [':branch_id', 'build', ':build_id'], method: 'DELETE'},
   {name: 'getBuild', path: [':branch_id', 'build', ':build_id'], method: 'GET'},
   {name: 'getBuilders', path: [':branch_id', 'builders'], method: 'GET'},
-
-  // Optional: properties(dict), files(list)
-  {name: 'triggerBuildername', path: [':branch_id', 'builders', ':builder_name', ':revision'], method: 'POST'},
-
-  // Required: request_id, Optional: priority (int), count(int, default 1)
-  {name: 'rebuildRequest', path: [':branch_id', 'request'], method: 'POST', require: ['request_id']},
-
+  {name: 'triggerBuildername', path: [':branch_id', 'builders', ':builder_name', ':revision'], method: 'POST', optional: ['properties', 'files']},
+  {name: 'rebuildRequest', path: [':branch_id', 'request'], method: 'POST', require: ['request_id'], optional: ['priority', 'count']},
   {name: 'cancelRequest', path: [':branch_id', 'request', ':request_id'], method: 'DELETE'},
   {name: 'getRequest', path: [':branch_id'], method: 'GET'},
-
-
-  // Required: priority (int)
   {name: 'reprioritizeRequest', path: [':branch_id', 'request', ':request_id'], method: 'PUT', required: ['priority']},
-
   {name: 'cancelRev', path: [':branch_id', 'rev', ':revision'], method: 'DELETE'},
   {name: 'getRev', path: [':branch_id', 'rev', ':revision'], method: 'GET'},
   {name: 'triggerRev', path: [':branch_id', 'rev', ':revision'], method: 'POST'},
   {name: 'isDone', path: [':branch_id', 'rev', ':revision', 'is_done'], method: 'GET'},
- 
-  // Nightly & PGO Optional: priority (int)
-  {name: 'triggerRevNightly', path: [':branch_id', 'rev', ':revision', 'nightly'], method: 'POST'},
-  {name: 'triggerRevPgo', path: [':branch_id', 'rev', ':revision', 'pgo'], method: 'POST'},
-
+  {name: 'triggerRevNightly', path: [':branch_id', 'rev', ':revision', 'nightly'], method: 'POST', optional: ['priority']},
+  {name: 'triggerRevPgo', path: [':branch_id', 'rev', ':revision', 'pgo'], method: 'POST', optional: ['priority']},
   {name: 'getBuildsForUser', path: [':branch_id', 'user', ':user'], method: 'GET'},
 ]
+
+function writeDocs() {
+  var fs = require('fs');
+  var util = require('util');
+  var lines = [];
+  lines.push('# API Reference');
+  lines.push('For complete information see [the real docs](https://secure.pub.build.mozilla.org/buildapi/self-serve)');
+  lines.push('');
+  lines.push('All functions can take an options argument, some functions have required options and all require a callback.');
+  lines.push('Call backs are in the form `function(err, data)`');
+
+  lines.push('');
+  lines.push('For query (i.e. GET) functions, the raw response body is passed back an `Object`.  For all other');
+  lines.push('functions, the build api status response is checked.  If there is an API Error');
+  lines.push(', an `Error` object is created with a plaintext explanation');
+  lines.push('On success the `request_id` is passed back');
+  lines.push('');
+  apiOps.forEach(function(e) {
+    var args = [];
+    e.path.forEach(function(p) {
+      if (p.charAt(0) === ':' ) {
+        args.push(p.slice(1));
+      }
+    });
+    var cbstuff = args.length > 0 ? ', callback' : 'callback';
+    var bpstuff = e.required ? ', opts' : '';
+    var requiredLines = [];
+    lines.push(util.format('* `buildapi#%s(%s%s%s)`', e.name, args.join(', '), bpstuff, cbstuff));
+    lines.push(util.format('\n  Does a %s to `/self-serve/%s`', e.method, e.path.join('/')));
+    if (e.required) {
+      lines.push('\n  Required options');
+      e.required.forEach(function (f) {
+        lines.push(util.format('  * `%s`', f));
+      });
+    }
+    if (e.optional) {
+      lines.push('\n  Optional options');
+      e.optional.forEach(function (f) {
+        lines.push(util.format('  * `%s`', f));
+      });
+    }
+
+  });
+  lines.push('');
+  fs.writeFileSync('API.md', lines.join('\n'));
+}
 
 function BuildAPI(opts) {
   if (!opts) {
@@ -161,5 +192,7 @@ function BuildAPI(opts) {
 function makeApiObj(opts) {
   return new BuildAPI(opts);
 }
+
+makeApiObj.docs = writeDocs;
 
 module.exports = makeApiObj;
