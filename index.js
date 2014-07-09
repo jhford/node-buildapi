@@ -5,8 +5,12 @@ var reqlib = require('request');
 var debug = require('debug')('node-buildapi:index');
 
 var apiOps = [
+  // Basic methods
   {name: 'branches', path: ['branches'], method: 'GET'},
   {name: 'jobs', path: ['jobs'], method: 'GET'},
+
+  // Basic methods with params
+  {name: 'getBranch', path: [':branch_id'], method: 'GET'},
 ]
 
 function BuildAPI(opts) {
@@ -29,11 +33,36 @@ function BuildAPI(opts) {
   apiOps.forEach(function(apiOp) {
     debug('Creating %s method for %s', apiOp.method, apiOp.name);
 
-    var urlBits = url.parse(this.baseUri);
-    urlBits.pathname += '/' + apiOp.path.join('/');
-    var uri = url.format(urlBits);
+    // Define each API method
+    this[apiOp.name] = function() {
+      var args = Array.prototype.slice.call(arguments);
+      var callback = args[args.length - 1];
+      var params = args.slice(0, args.length - 1);
+      var pathChunks = [];
+      var paramIdx = 0;
+      var numUsedParams = 0;
 
-    this[apiOp.name] = function(callback) {
+      // Insert js arguments into path list
+      apiOp.path.forEach(function(e, idx, arr) {
+        if (e.charAt(0) === ':') {
+          pathChunks.push(args[paramIdx++]);
+        } else {
+          pathChunks.push(e)
+        }
+      }, this);
+
+      // Verify that we got the right number of function params
+      // for the given endpoint
+      if (paramIdx !== params.length) {
+        return callback(new Error('Incorrent number of arguments'));
+      }
+
+      // Splice in API endpoint
+      var urlBits = url.parse(this.baseUri);
+      urlBits.pathname += '/' + pathChunks.join('/');
+      var uri = url.format(urlBits);
+
+      // Build the options for request
       var reqOpts = {
         method: apiOp.method,
         auth: {
@@ -48,6 +77,8 @@ function BuildAPI(opts) {
       };
       debug('Requesting URI: %s', reqOpts.uri);
       debug('Auth with %s:%s', reqOpts.auth.user, reqOpts.auth.pass);
+
+      // Perform request
       reqlib(reqOpts, function (err, response, body) {
         if (err) {
           return callback(err, response, body);
