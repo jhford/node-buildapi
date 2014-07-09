@@ -5,7 +5,8 @@ var reqlib = require('request');
 var debug = require('debug')('node-buildapi:index');
 
 var apiOps = [
-  {name: 'branches', path: ['branches'], method: 'GET'}
+  {name: 'branches', path: ['branches'], method: 'GET'},
+  {name: 'jobs', path: ['jobs'], method: 'GET'},
 ]
 
 function BuildAPI(opts) {
