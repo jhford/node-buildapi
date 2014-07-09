@@ -1,0 +1,27 @@
+{
+  "name": "node-buildapi",
+  "version": "0.0.1",
+  "description": "Node module for talking to the Mozilla Build API",
+  "main": "index.js",
+  "scripts": {
+    "test": "make tests"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jhford/node-buildapi.git"
+  },
+  "keywords": [
+    "mozilla",
+    "buildapi"
+  ],
+  "author": "John Ford",
+  "license": "MPL",
+  "bugs": {
+    "url": "https://github.com/jhford/node-buildapi/issues"
+  },
+  "homepage": "https://github.com/jhford/node-buildapi",
+  "dependencies": {
+    "debug": "^1.0.3",
+    "request": "^2.37.0"
+  }
+}
