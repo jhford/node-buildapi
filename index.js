@@ -65,12 +65,20 @@ function BuildAPI(opts) {
     // Define each API method
     this[apiOp.name] = function() {
       var args = Array.prototype.slice.call(arguments);
+      var bodyParams = {};
       var callback = args[args.length - 1];
-      if
       var params = args.slice(0, args.length - 1);
+
+      // Support sending params as urlencoded body
+      if (args.length > 1) {
+        if (typeof args[args.length - 2] === 'object') {
+          bodyParams = args[args.length - 2];  
+          params = args.slice(0, args.length - 2);
+        }
+      }
+
       var pathChunks = [];
       var paramIdx = 0;
-      var numUsedParams = 0;
 
       // Insert js arguments into path list
       apiOp.path.forEach(function(e, idx, arr) {
@@ -103,7 +111,8 @@ function BuildAPI(opts) {
         uri: uri,
         headers: {
           'User-agent': 'node-buildapi'
-        }
+        },
+        form: bodyParams
       };
       debug('Requesting URI: %s', reqOpts.uri);
       debug('Auth with %s:%s', reqOpts.auth.user, reqOpts.auth.pass);
@@ -111,7 +120,7 @@ function BuildAPI(opts) {
       // Perform request
       reqlib(reqOpts, function (err, response, body) {
         if (err) {
-          return callback(err, response, body);
+          return callback(err);
         }
         try {
           return callback(null, JSON.parse(body));
